@@ -1,8 +1,8 @@
 # NIM-variation
 A Python implementation of a variation of NIM. The exact rules of this variant are as follows:
-- The game features `n` piles where `n` >= 2
+- The game features `n` piles where `n` > 1
     - Each pile contains an arbitrary number of objects
-- Two players take turns removing `y` >= 1 objects from a single pile `x` (both `y` and `x` are chosen by the player each turn)
+- Two players take turns removing `y` > 0 objects from a single pile `x` (both `y` and `x` are chosen by the player at each turn)
 - A player *loses* the game if, after their turn, any one of the following is true:
     - All `n` piles are empty
     - There exists 3 piles each with 2 objects remaining AND all other piles are empty
