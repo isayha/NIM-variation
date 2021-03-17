@@ -18,6 +18,7 @@ def main():
             valid_pile_count = True
 
     piles = []
+    non_empty_pile_count = pile_count
 
     # Get pile sizes:
     for selected_pile in range(pile_count):
@@ -45,6 +46,7 @@ def main():
     game_over = False
     while not game_over:
         print("Piles: " + str(piles))
+        print(non_empty_pile_count) # TEST ONLY REMOVE LATER
 
         if turn_order == 0: # human's turn
 
@@ -71,10 +73,63 @@ def main():
                     valid_selection = True
 
             piles[selected_pile] -= reduction
+            if piles[selected_pile] == 0:
+                non_empty_pile_count -= 1
         
         if turn_order == 1: # cpu's turn
-            pass # TEST ONLY REMOVE LATER
-            # cpu logic here
+            nim_sum = 0
+            for pile_size in piles:
+                nim_sum ^= pile_size
+            print("NIM SUM: " + str(nim_sum))
+            if nim_sum == 0:
+                print("CPU is losing.")
+                for pile in range(len(piles)):
+                    if piles[pile] != 0:
+                        print("CPU removes 1 object(s) from pile " + str(pile) + ".")
+                        piles[pile] -= 1
+                        if piles[pile] == 0:
+                            non_empty_pile_count -= 1
+                        break
+            else:
+                if non_empty_pile_count > 2:
+                    move_found = False
+                    while not move_found:
+                        for pile in range(len(piles)):
+                            nim_sum_xor_pile_size = nim_sum ^ piles[pile]
+                            if piles[pile] >= nim_sum_xor_pile_size:
+                                print("CPU removes " + str(piles[pile] - nim_sum_xor_pile_size) + " object(s) from pile " + str(pile) + ".")
+                                piles[pile] -= piles[pile] - nim_sum_xor_pile_size
+                                if piles[pile] == 0:
+                                    non_empty_pile_count -= 1
+                                move_found = True
+                                break
+                        nim_sum -= 1
+                        
+                else:
+                    if non_empty_pile_count == 1:
+                        for pile in range(len(piles)):
+                            if piles[pile] > 0:
+                                print("CPU removes " + str(piles[pile] - 1) + " objects from pile " + str(pile) + ".")
+                                piles[pile] = 1
+                                break
+                    else:
+                        if any(pile_size == 1 for pile, pile_size in enumerate(piles)):
+                            for pile in range(len(piles)):
+                                if piles[pile] > 1:
+                                    print("CPU removes " + str(piles[pile]) + " object(s) from pile " + str(pile) + ".")
+                                    piles[pile] = 0
+                                    non_empty_pile_count += 1
+                                    break
+                        else:
+                            smallest_pile = min(pile for pile in piles if pile > 0)
+                            for pile in range(len(piles)):
+                                if piles[pile] != smallest_pile:
+                                    print("CPU removes " + str(piles[pile] - smallest_pile) + " object(s) from pile " + str(pile) + ".")
+                                    piles[pile] = smallest_pile
+                                    break
+
+
+                    
         
         # Check if game is over:
         if all(pile_size == 0 for pile_size in piles): # Check if all piles are empty
@@ -82,7 +137,7 @@ def main():
             game_over = True
         # Add logic for Chen's constraints HERE as an ELIF
         else:
-            turn_order ^= turn_order # Rotate turns
+            turn_order = not(turn_order) # Rotate turns
 
     if turn_order == 0:
         print("CPU wins!")
