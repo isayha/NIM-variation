@@ -46,14 +46,14 @@ def main():
     game_over = False
     while not game_over:
         print("Piles: " + str(piles))
-        print(non_empty_pile_count) # TEST ONLY REMOVE LATER
+        print("Index: " + str(list(index for index in range(len(piles)))))
 
         if turn_order == 0: # human's turn
 
             # Get selected pile:
             valid_selection = False
             while not valid_selection:
-                selected_pile = get_user_int("Please enter the number of the pile you would like to take from: ")
+                selected_pile = get_user_int("Please enter the index of the pile you would like to take from: ")
                 if selected_pile is None or selected_pile < 0 or selected_pile >= pile_count:
                     print("ERROR: Invalid input.")
                 elif piles[selected_pile] == 0:
@@ -80,9 +80,8 @@ def main():
             nim_sum = 0
             for pile_size in piles:
                 nim_sum ^= pile_size
-            print("NIM SUM: " + str(nim_sum))
             if nim_sum == 0:
-                print("CPU is losing.")
+                print("CPU is losing.") # TEST ONLY REMOVE LASTER
                 for pile in range(len(piles)):
                     if piles[pile] != 0:
                         print("CPU removes 1 object(s) from pile " + str(pile) + ".")
