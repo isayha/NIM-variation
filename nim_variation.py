@@ -9,7 +9,7 @@ from custom_io import *
 from tabulate import tabulate # Requires package "tabulate" (pip install tabulate)
 
 def print_reduction(player, reduction, pile_index):
-    print(player + " removes " + str(reduction) + " object(s) from pile " + str(pile_index) + ".")
+    print(player + " removes " + str(reduction) + " object(s) from pile " + str(pile_index) + ":")
 
 def human_plays(pile_count, piles, non_empty_pile_indexes):
     # Get selected pile:
@@ -106,6 +106,8 @@ def main():
         # CPU's turn logic
         else:
             reduction, pile_index = cpu_plays(pile_count, piles, non_empty_pile_indexes) # !!! If we don't have to pass any variables by adjusting scope, that would be ideal
+            if reduction < 1: # !!! We need real strategy here lol
+                reduction = 1
             print_reduction("CPU", reduction, pile_index)
 
         # Reduction logic:
@@ -117,7 +119,12 @@ def main():
         if not non_empty_pile_indexes: # Check if all piles are empty
             print("All piles are empty.")
             game_over = True
-        # !!! Add logic for Chen's constraints HERE as an ELIF
+        elif len(non_empty_pile_indexes) == 3 and sum(piles[pile_index] for pile_index in non_empty_pile_indexes) == 6:
+            if any(piles[pile_index] != 2 for pile_index in non_empty_pile_indexes):
+                print("3 non-empty piles remain, containing exactly 1, 2, and 3 objects (respectively).")
+            else:
+                print("3 non-empty piles remain, each containing exactly 2 objects.")
+            game_over = True
         else:
             cpus_turn = not(cpus_turn) # Rotate turns
 
