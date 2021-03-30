@@ -3,8 +3,6 @@
 # CPSC 482
 # Derik Dreher, Sofia Jones, Isayha Raposo
 
-# !!! = Notes for future development
-
 from custom_io import *
 from tabulate import tabulate # Requires package "tabulate" (pip install tabulate)
 from collections import Counter
@@ -29,10 +27,14 @@ def human_plays(pile_count, piles, non_empty_pile_indexes):
 
     return(reduction, pile_index)
 
+# Blacklist (List of specified constrained/immediate-loss game states)
 blacklist = {}
+# Chen's constraints (hard-coded)
 blacklist.update({frozenset(Counter([1,2,3]).items()) : False}) # False is an arbitrary value
 blacklist.update({frozenset(Counter([2,2,2]).items()) : False}) # False is an arbitrary value
+
 def cpu_plays(piles, non_empty_pile_indexes):
+    # Used in cases where any and all moves that change the NIM-sum to 0 also put the CPU player into a constrained/immediate-loss game state
     flagged_state = None
 
     # Calculate NIM-sum
@@ -48,7 +50,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                 nim_sum_xor_pile_size = nim_sum ^ piles[pile_index]
                 if piles[pile_index] >= nim_sum_xor_pile_size:
                     reduction = piles[pile_index] - nim_sum_xor_pile_size
-
+                    # Check for constrained/immediate-loss game states
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
                     temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
@@ -65,6 +67,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                     reduction = piles[pile_index] - 1
                     # If the non-empty pile remaining contains more than 1 object...
                     if reduction != 0:
+                        # Check for constrained/immediate-loss game states
                         temp_piles = piles.copy()
                         temp_piles[pile_index] -= reduction
                         temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
@@ -73,7 +76,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                             break
                         else:
                             return(reduction, pile_index)
-                    # Forfeit
+                    # ...else forfeit
                     else:
                         return(1, pile_index)
             # If the non-empty pile count is equal to 2...
@@ -83,7 +86,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                     for pile_index in non_empty_pile_indexes:
                         if piles[pile_index] > 1:
                             reduction = piles[pile_index]
-                            
+                            # Check for constrained/immediate-loss game states
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
                             temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
@@ -99,7 +102,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                     for pile_index in non_empty_pile_indexes:
                         if piles[pile_index] != smallest_pile_size:
                             reduction = piles[pile_index] - smallest_pile_size
-
+                            # Check for constrained/immediate-loss game states
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
                             temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
@@ -108,43 +111,42 @@ def cpu_plays(piles, non_empty_pile_indexes):
                                 break
                             else:
                                 return(reduction, pile_index)
-
     if flagged_state is not None:
-        # Logic for cases in which the only move with outcome NIM-sum = 0 leads to a blacklisted (immediate loss) state
-        # Ideally a move is picked so that the other player is forced into the same situation on their next turn
+        # Strategy for cases in which any and all moves that change the NIM-sum to 0 also put the CPU player into a constrained/immediate-loss game state
+        # If possible, the move chosen should force the other player into the same situation on their next turn, if possible
 
-        print("No move leading to a winning state found... Checking other possibilities.")
-
-        # The best move is that which best forces the other player into the same situation on their next turn
+        print("CPU: No move leading to a winning state found... Checking other possibilities.")
         best_move = None
+        # High NIM-sums are more likely to make it difficult to reduce the NIM-sum to 0 on the next turn
+        # e.g.: A high NIM-sum is more likely to mean > 1 pile must be reduced to get the NIM-sum to 0
         best_move_nim_sum = 0
+        # High pile counts are more likely to make it difficult to reduce the NIM-sum to 0 on the next turn, for similar reasons
         best_move_non_empty_pile_count = 0
 
         future_sum = sum(flagged_state)
         current_sum = sum(piles)
         reduction = (current_sum - future_sum) - 1
+
         for pile_index in non_empty_pile_indexes:
             if piles[pile_index] >= reduction:
+                # Check for constrained/immediate-loss game states
                 temp_piles = piles.copy()
                 temp_piles[pile_index] -= reduction
                 temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-
                 if frozenset(Counter(temp_piles).items()) not in blacklist:
                     temp_nim_sum = 0
                     temp_non_empty_pile_count = 0
                     for pile in temp_piles:
                         temp_nim_sum ^= pile
                         temp_non_empty_pile_count += 1
-
                     if best_move_nim_sum <= temp_nim_sum and best_move_non_empty_pile_count <= temp_non_empty_pile_count:
                         best_move = (reduction, pile_index)
                         best_move_nim_sum = temp_nim_sum
                         best_move_non_empty_pile_count = temp_non_empty_pile_count
-
         if best_move is not None:
             return(best_move)
 
-    # Otherwise do some arbitrary move that doesn't lead to a blacklisted state
+    # If no strategy is found, perform some arbitrary move that doesn't lead to an immediate-loss game state
     for pile_index in non_empty_pile_indexes:
         for reduction in range(1, piles[pile_index] + 1):
             temp_piles = piles.copy()
@@ -153,6 +155,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
             if frozenset(Counter(temp_piles).items()) not in blacklist:
                 return(reduction, pile_index)
 
+    # Default return for safety (handled externally)
     return(None, None)
 
 # Main function:
