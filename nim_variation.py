@@ -49,6 +49,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
 
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
+                    temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
                     if frozenset(temp_piles) in blacklist:
                         flagged_state = temp_piles
                         continue
@@ -63,6 +64,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
 
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
+                    temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
                     if frozenset(temp_piles) in blacklist:
                         flagged_state = temp_piles
                         break
@@ -78,6 +80,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                             
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
+                            temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
                             if frozenset(temp_piles) in blacklist:
                                 flagged_state = temp_piles
                                 break
@@ -93,6 +96,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
 
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
+                            temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
                             if frozenset(temp_piles) in blacklist:
                                 flagged_state = temp_piles
                                 break
@@ -108,53 +112,38 @@ def cpu_plays(piles, non_empty_pile_indexes):
             # The best move is that which best forces the other player into the same situation on their next turn
             best_move = None
             best_move_nim_sum = 0
+            best_move_non_empty_pile_count = 0
 
             future_sum = sum(flagged_state)
             current_sum = sum(piles)
             reduction = (current_sum - future_sum) - 1
             for pile_index in non_empty_pile_indexes:
-                if piles[pile_index] > reduction:
+                if piles[pile_index] >= reduction:
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
-
+                    temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
+                    
                     if frozenset(temp_piles) not in blacklist:
                         temp_nim_sum = 0
+                        temp_non_empty_pile_count = 0
                         for pile in temp_piles:
                             temp_nim_sum ^= pile
+                            temp_non_empty_pile_count += 1
 
-                        if best_move_nim_sum < temp_nim_sum:
+                        if best_move_nim_sum <= temp_nim_sum and best_move_non_empty_pile_count <= temp_non_empty_pile_count:
                             best_move = (reduction, pile_index)
                             best_move_nim_sum = temp_nim_sum
+                            best_move_non_empty_pile_count = temp_non_empty_pile_count
 
             if best_move is not None:
                 return(best_move)
-
-
-            # for pile_index in non_empty_pile_indexes:
-            #     if piles[pile_index] != flagged_state[pile_index]: # piles[pile_index] will ALWAYS be greater than flagged_state[pile_index] since the latter is a later game state
-            #         difference = piles[pile_index] - flagged_state[pile_index]
-            #         reduction = difference - 1
-            #         temp_piles = piles.copy()
-            #         temp_piles[pile_index] -= reduction
-
-            #         if frozenset(temp_piles) not in blacklist:
-            #             temp_nim_sum = 0
-            #             for pile in temp_piles:
-            #                 temp_nim_sum ^= pile
-
-            #             if best_move_nim_sum < temp_nim_sum:
-            #                 best_move = (pile_index, reduction)
-            #                 best_move_nim_sum = temp_nim_sum
-                        
-            # if best_move is not None:
-            #     print(temp_piles)
-            #     return(best_move)
 
         # Otherwise do some arbitrary move that doesn't lead to a blacklisted state
         for pile_index in non_empty_pile_indexes:
             for reduction in range(1, piles[pile_index] + 1):
                 temp_piles = piles.copy()
                 temp_piles[pile_index] -= reduction
+                temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
                 if frozenset(temp_piles) not in blacklist:
                     return(reduction, pile_index)
 
