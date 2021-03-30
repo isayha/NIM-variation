@@ -226,6 +226,7 @@ def main():
             print("All piles are empty.")
             game_over = True
         elif frozenset(Counter([pile_size for pile_size in piles if pile_size > 0]).items()) in blacklist:
+            print("A constrained/immediate-loss game state has been reached.")
             game_over = True
         else:
             cpus_turn = not(cpus_turn) # Rotate turns
