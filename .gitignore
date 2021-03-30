@@ -142,3 +142,6 @@ cython_debug/
 *.gz
 *.log
 *.synctex(busy)
+
+# Other
+test.py

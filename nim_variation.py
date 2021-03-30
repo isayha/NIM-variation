@@ -7,6 +7,7 @@
 
 from custom_io import *
 from tabulate import tabulate # Requires package "tabulate" (pip install tabulate)
+from collections import Counter
 
 def print_reduction(player, reduction, pile_index):
     print(player + " removes " + str(reduction) + " object(s) from pile " + str(pile_index) + ":")
@@ -29,8 +30,8 @@ def human_plays(pile_count, piles, non_empty_pile_indexes):
     return(reduction, pile_index)
 
 blacklist = {}
-blacklist.update({frozenset([1,2,3]) : False}) # False is an arbitrary value
-blacklist.update({frozenset([2,2,2]) : False}) # False is an arbitrary value
+blacklist.update({frozenset(Counter([1,2,3]).items()) : False}) # False is an arbitrary value
+blacklist.update({frozenset(Counter([2,2,2]).items()) : False}) # False is an arbitrary value
 def cpu_plays(piles, non_empty_pile_indexes):
     flagged_state = None
 
@@ -51,7 +52,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
                     temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                    if frozenset(temp_piles) in blacklist:
+                    if frozenset(Counter(temp_piles).items()) in blacklist:
                         flagged_state = temp_piles
                         continue
                     else:
@@ -67,7 +68,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                         temp_piles = piles.copy()
                         temp_piles[pile_index] -= reduction
                         temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                        if frozenset(temp_piles) in blacklist:
+                        if frozenset(Counter(temp_piles).items()) in blacklist:
                             flagged_state = temp_piles
                             break
                         else:
@@ -86,7 +87,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
                             temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                            if frozenset(temp_piles) in blacklist:
+                            if frozenset(Counter(temp_piles).items()) in blacklist:
                                 flagged_state = temp_piles
                                 break
                             else:
@@ -102,7 +103,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
                             temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                            if frozenset(temp_piles) in blacklist:
+                            if frozenset(Counter(temp_piles).items()) in blacklist:
                                 flagged_state = temp_piles
                                 break
                             else:
@@ -128,7 +129,7 @@ def cpu_plays(piles, non_empty_pile_indexes):
                 temp_piles[pile_index] -= reduction
                 temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
 
-                if frozenset(temp_piles) not in blacklist:
+                if frozenset(Counter(temp_piles).items()) not in blacklist:
                     temp_nim_sum = 0
                     temp_non_empty_pile_count = 0
                     for pile in temp_piles:
@@ -149,8 +150,10 @@ def cpu_plays(piles, non_empty_pile_indexes):
             temp_piles = piles.copy()
             temp_piles[pile_index] -= reduction
             temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-            if frozenset(temp_piles) not in blacklist:
+            if frozenset(Counter(temp_piles).items()) not in blacklist:
                 return(reduction, pile_index)
+
+    return(None, None)
 
 # Main function:
 def main():
@@ -168,14 +171,14 @@ def main():
         piles.append(pile_size)
 
     # Get custom constraint:
-    add_constraint = get_user_int("Would you like to add a custom constraint? Enter 1 for Yes, 0 for No: ", 0, 1)
+    add_constraint = get_user_int("Would you like to add a custom constraint? (0 for N, 1 for Y): ", 0, 1)
     if add_constraint:
         # Get custom constraint pile count:
         constraint_pile_count = get_user_int("How many piles should the custom constraint involve? (NOT INCLUDING: Piles containing 0 objects): ", 1, pile_count)
         constraint = []
         for pile_index in range(constraint_pile_count):
             constraint.append(get_user_int("Please enter a pile size to add to the custom constraint: ", 1, None))
-        blacklist.update({frozenset(constraint) : False}) # False is an arbitrary value
+        blacklist.update({frozenset(Counter(constraint).items()) : False}) # False is an arbitrary value
     
     # Handle immediate loss:
     if frozenset(piles) in blacklist:
@@ -202,6 +205,12 @@ def main():
         else:
             # Get reduction/pile index:
             reduction, pile_index = cpu_plays(piles, non_empty_pile_indexes) # !!! If we don't have to pass any variables by adjusting scope, that would be ideal
+            
+            if reduction is None or pile_index is None:
+                print("ERROR: CPU could not find move. Defaulting...")
+                reduction = 1
+                pile_index = non_empty_pile_indexes[0]
+
             print_reduction("CPU", reduction, pile_index)
 
         # Reduction logic:
@@ -213,14 +222,7 @@ def main():
         if not non_empty_pile_indexes: # Check if all piles are empty
             print("All piles are empty.")
             game_over = True
-        # Check Chen's first two constraints (hardcoded, removed in favour of modularity of blacklist)
-        # elif len(non_empty_pile_indexes) == 3 and sum(piles[pile_index] for pile_index in non_empty_pile_indexes) == 6:
-        #     if any(piles[pile_index] != 2 for pile_index in non_empty_pile_indexes):
-        #         print("3 non-empty piles remain, containing exactly 1, 2, and 3 objects (respectively).")
-        #     else:
-        #         print("3 non-empty piles remain, each containing exactly 2 objects.")
-        #     game_over = True
-        elif frozenset([pile_size for pile_size in piles if pile_size > 0]) in blacklist:
+        elif frozenset(Counter([pile_size for pile_size in piles if pile_size > 0]).items()) in blacklist:
             game_over = True
         else:
             cpus_turn = not(cpus_turn) # Rotate turns
