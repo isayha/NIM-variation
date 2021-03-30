@@ -176,6 +176,11 @@ def main():
         for pile_index in range(constraint_pile_count):
             constraint.append(get_user_int("Please enter a pile size to add to the custom constraint: ", 1, None))
         blacklist.update({frozenset(constraint) : False}) # False is an arbitrary value
+    
+    # Handle immediate loss:
+    if frozenset(piles) in blacklist:
+        print("WARNING: Custom constraint is equivalent to initial pile state.")
+        print("Ignoring custom constraint (was this an accident?)...")
 
     # Get turn order:
     turn_order = get_user_int("Please enter the desired turn order (0 for human-first, 1 for cpu-first): ", 0, 1)
