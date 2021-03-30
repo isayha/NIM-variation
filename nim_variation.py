@@ -46,19 +46,38 @@ def cpu_plays(piles, non_empty_pile_indexes):
     if nim_sum != 0:
         # Strategy for states in which the non-empty pile count is greater than 2 (Keep the NIM-sum equal to 0)
         if len(non_empty_pile_indexes) > 2:
+            # Special case strategy (with the exception of a single pile, all non-empty piles contain exactly 1 object)
+            piles_of_size_one = 0
+            flag = -1 # -1 is arbitrary/an identifiably invalid pile_index value
             for pile_index in non_empty_pile_indexes:
-                nim_sum_xor_pile_size = nim_sum ^ piles[pile_index]
-                if piles[pile_index] >= nim_sum_xor_pile_size:
-                    reduction = piles[pile_index] - nim_sum_xor_pile_size
-                    # Check for constrained/immediate-loss game states
-                    temp_piles = piles.copy()
-                    temp_piles[pile_index] -= reduction
-                    temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                    if frozenset(Counter(temp_piles).items()) in blacklist:
-                        flagged_state = temp_piles
-                        continue
+                if piles[pile_index] != 1:
+                    if flag == -1:
+                        flag = pile_index
                     else:
-                        return(reduction, pile_index)
+                        flag = -1
+                        break
+                else:
+                    piles_of_size_one += 1
+            if flag != -1:
+                if piles_of_size_one % 2 == 0:
+                    reduction = piles[flag] - 1
+                else:
+                    reduction = piles[flag]
+                return(reduction, flag)
+            else:
+                for pile_index in non_empty_pile_indexes:
+                    nim_sum_xor_pile_size = nim_sum ^ piles[pile_index]
+                    if piles[pile_index] >= nim_sum_xor_pile_size:
+                        reduction = piles[pile_index] - nim_sum_xor_pile_size
+                        # Check for constrained/immediate-loss game states
+                        temp_piles = piles.copy()
+                        temp_piles[pile_index] -= reduction
+                        temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
+                        if frozenset(Counter(temp_piles).items()) in blacklist:
+                            flagged_state = temp_piles
+                            continue
+                        else:
+                            return(reduction, pile_index)
         # Strategy for states in which the non-empty pile count is less than or equal to 2
         else:
             # If the non-empty pile count is equal to 1, remove all but 1 object from the single non-empty pile, forcing the human player's hand
