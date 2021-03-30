@@ -30,13 +30,14 @@ def human_plays(pile_count, piles, non_empty_pile_indexes):
 
 blacklist = {}
 blacklist.update({frozenset([1,2,3]) : False}) # False is an arbitrary value
+blacklist.update({frozenset([2,2,2]) : False}) # False is an arbitrary value
 def cpu_plays(piles, non_empty_pile_indexes):
     flagged_state = None
 
     # Calculate NIM-sum
     nim_sum = 0
-    for pile_size in piles:
-        nim_sum ^= pile_size
+    for pile_index in non_empty_pile_indexes:
+        nim_sum ^= piles[pile_index]
 
     # If the NIM-sum is NOT 0 prior to the CPU's turn, the CPU can win as long as the NIM-sum is 0 at the END of it's turn
     if nim_sum != 0:
@@ -61,15 +62,19 @@ def cpu_plays(piles, non_empty_pile_indexes):
             if len(non_empty_pile_indexes) == 1:
                 for pile_index in non_empty_pile_indexes:
                     reduction = piles[pile_index] - 1
-
-                    temp_piles = piles.copy()
-                    temp_piles[pile_index] -= reduction
-                    temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                    if frozenset(temp_piles) in blacklist:
-                        flagged_state = temp_piles
-                        break
+                    # If the non-empty pile remaining contains more than 1 object...
+                    if reduction != 0:
+                        temp_piles = piles.copy()
+                        temp_piles[pile_index] -= reduction
+                        temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
+                        if frozenset(temp_piles) in blacklist:
+                            flagged_state = temp_piles
+                            break
+                        else:
+                            return(reduction, pile_index)
+                    # Forfeit
                     else:
-                        return(reduction, pile_index)
+                        return(1, pile_index)
             # If the non-empty pile count is equal to 2...
             else:
                 # ...and 1 of the 2 non-empty piles contains just 1 object, remove all of the objects from the OPPOSITE pile, forcing the human player's hand
@@ -103,53 +108,54 @@ def cpu_plays(piles, non_empty_pile_indexes):
                             else:
                                 return(reduction, pile_index)
 
-        if flagged_state is not None:
-            # Logic for cases in which the only move with outcome NIM-sum = 0 leads to a blacklisted (immediate loss) state
-            # Ideally a move is picked so that the other player is forced into the same situation on their next turn
+    if flagged_state is not None:
+        # Logic for cases in which the only move with outcome NIM-sum = 0 leads to a blacklisted (immediate loss) state
+        # Ideally a move is picked so that the other player is forced into the same situation on their next turn
 
-            print("No move leading to a winning state found... Checking other possibilities.")
+        print("No move leading to a winning state found... Checking other possibilities.")
 
-            # The best move is that which best forces the other player into the same situation on their next turn
-            best_move = None
-            best_move_nim_sum = 0
-            best_move_non_empty_pile_count = 0
+        # The best move is that which best forces the other player into the same situation on their next turn
+        best_move = None
+        best_move_nim_sum = 0
+        best_move_non_empty_pile_count = 0
 
-            future_sum = sum(flagged_state)
-            current_sum = sum(piles)
-            reduction = (current_sum - future_sum) - 1
-            for pile_index in non_empty_pile_indexes:
-                if piles[pile_index] >= reduction:
-                    temp_piles = piles.copy()
-                    temp_piles[pile_index] -= reduction
-                    temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
-                    
-                    if frozenset(temp_piles) not in blacklist:
-                        temp_nim_sum = 0
-                        temp_non_empty_pile_count = 0
-                        for pile in temp_piles:
-                            temp_nim_sum ^= pile
-                            temp_non_empty_pile_count += 1
-
-                        if best_move_nim_sum <= temp_nim_sum and best_move_non_empty_pile_count <= temp_non_empty_pile_count:
-                            best_move = (reduction, pile_index)
-                            best_move_nim_sum = temp_nim_sum
-                            best_move_non_empty_pile_count = temp_non_empty_pile_count
-
-            if best_move is not None:
-                return(best_move)
-
-        # Otherwise do some arbitrary move that doesn't lead to a blacklisted state
+        future_sum = sum(flagged_state)
+        current_sum = sum(piles)
+        reduction = (current_sum - future_sum) - 1
         for pile_index in non_empty_pile_indexes:
-            for reduction in range(1, piles[pile_index] + 1):
+            if piles[pile_index] >= reduction:
                 temp_piles = piles.copy()
                 temp_piles[pile_index] -= reduction
                 temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
+
                 if frozenset(temp_piles) not in blacklist:
-                    return(reduction, pile_index)
+                    temp_nim_sum = 0
+                    temp_non_empty_pile_count = 0
+                    for pile in temp_piles:
+                        temp_nim_sum ^= pile
+                        temp_non_empty_pile_count += 1
+
+                    if best_move_nim_sum <= temp_nim_sum and best_move_non_empty_pile_count <= temp_non_empty_pile_count:
+                        best_move = (reduction, pile_index)
+                        best_move_nim_sum = temp_nim_sum
+                        best_move_non_empty_pile_count = temp_non_empty_pile_count
+
+        if best_move is not None:
+            return(best_move)
+
+    # Otherwise do some arbitrary move that doesn't lead to a blacklisted state
+    for pile_index in non_empty_pile_indexes:
+        for reduction in range(1, piles[pile_index] + 1):
+            temp_piles = piles.copy()
+            temp_piles[pile_index] -= reduction
+            temp_piles = [pile_size for pile_size in temp_piles if pile_size > 0]
+            if frozenset(temp_piles) not in blacklist:
+                return(reduction, pile_index)
 
 # Main function:
 def main():
     # Game setup:
+
     # Get pile count:
     pile_count = get_user_int("Please enter the desired number of piles (> 1): ", 2, None)
 
@@ -160,6 +166,16 @@ def main():
     for pile_index in range(pile_count):
         pile_size = get_user_int("Please enter the desired number of objects in pile " + str(pile_index) + ": ", 1, None)
         piles.append(pile_size)
+
+    # Get custom constraint:
+    add_constraint = get_user_int("Would you like to add a custom constraint? Enter 1 for Yes, 0 for No: ", 0, 1)
+    if add_constraint:
+        # Get custom constraint pile count:
+        constraint_pile_count = get_user_int("How many piles should the custom constraint involve? (NOT INCLUDING: Piles containing 0 objects): ", 1, pile_count)
+        constraint = []
+        for pile_index in range(constraint_pile_count):
+            constraint.append(get_user_int("Please enter a pile size to add to the custom constraint: ", 1, None))
+        blacklist.update({frozenset(constraint) : False}) # False is an arbitrary value
 
     # Get turn order:
     turn_order = get_user_int("Please enter the desired turn order (0 for human-first, 1 for cpu-first): ", 0, 1)
@@ -192,11 +208,14 @@ def main():
         if not non_empty_pile_indexes: # Check if all piles are empty
             print("All piles are empty.")
             game_over = True
-        elif len(non_empty_pile_indexes) == 3 and sum(piles[pile_index] for pile_index in non_empty_pile_indexes) == 6:
-            if any(piles[pile_index] != 2 for pile_index in non_empty_pile_indexes):
-                print("3 non-empty piles remain, containing exactly 1, 2, and 3 objects (respectively).")
-            else:
-                print("3 non-empty piles remain, each containing exactly 2 objects.")
+        # Check Chen's first two constraints (hardcoded, removed in favour of modularity of blacklist)
+        # elif len(non_empty_pile_indexes) == 3 and sum(piles[pile_index] for pile_index in non_empty_pile_indexes) == 6:
+        #     if any(piles[pile_index] != 2 for pile_index in non_empty_pile_indexes):
+        #         print("3 non-empty piles remain, containing exactly 1, 2, and 3 objects (respectively).")
+        #     else:
+        #         print("3 non-empty piles remain, each containing exactly 2 objects.")
+        #     game_over = True
+        elif frozenset([pile_size for pile_size in piles if pile_size > 0]) in blacklist:
             game_over = True
         else:
             cpus_turn = not(cpus_turn) # Rotate turns
