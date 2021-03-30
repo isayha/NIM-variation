@@ -30,22 +30,16 @@ def human_plays(pile_count, piles, non_empty_pile_indexes):
 
 blacklist = {}
 blacklist.update({frozenset([1,2,3]) : False}) # False is an arbitrary value
-def cpu_plays(pile_count, piles, non_empty_pile_indexes):
-    problematic_state = None
+def cpu_plays(piles, non_empty_pile_indexes):
+    flagged_state = None
 
     # Calculate NIM-sum
     nim_sum = 0
     for pile_size in piles:
         nim_sum ^= pile_size
 
-    # If the NIM-sum is 0 prior to the CPU's turn, the CPU is losing, and will remove 1 object from an arbitrary non-empty pile
-    # !!! There could be some strategy implemented here, not sure what yet
-    # !!! e.g: Increasing the NIM-sum as much as possible may be a good strategy (would have to check math)
-    if nim_sum == 0:
-        for pile_index in non_empty_pile_indexes:
-            return(1, pile_index)
     # If the NIM-sum is NOT 0 prior to the CPU's turn, the CPU can win as long as the NIM-sum is 0 at the END of it's turn
-    else:
+    if nim_sum != 0:
         # Strategy for states in which the non-empty pile count is greater than 2 (Keep the NIM-sum equal to 0)
         if len(non_empty_pile_indexes) > 2:
             for pile_index in non_empty_pile_indexes:
@@ -56,7 +50,7 @@ def cpu_plays(pile_count, piles, non_empty_pile_indexes):
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
                     if frozenset(temp_piles) in blacklist:
-                        problematic_state = temp_piles
+                        flagged_state = temp_piles
                         continue
                     else:
                         return(reduction, pile_index)
@@ -70,7 +64,7 @@ def cpu_plays(pile_count, piles, non_empty_pile_indexes):
                     temp_piles = piles.copy()
                     temp_piles[pile_index] -= reduction
                     if frozenset(temp_piles) in blacklist:
-                        problematic_state = temp_piles
+                        flagged_state = temp_piles
                         break
                     else:
                         return(reduction, pile_index)
@@ -85,7 +79,7 @@ def cpu_plays(pile_count, piles, non_empty_pile_indexes):
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
                             if frozenset(temp_piles) in blacklist:
-                                problematic_state = temp_piles
+                                flagged_state = temp_piles
                                 break
                             else:
                                 return(reduction, pile_index)
@@ -100,38 +94,61 @@ def cpu_plays(pile_count, piles, non_empty_pile_indexes):
                             temp_piles = piles.copy()
                             temp_piles[pile_index] -= reduction
                             if frozenset(temp_piles) in blacklist:
-                                problematic_state = temp_piles
+                                flagged_state = temp_piles
                                 break
                             else:
                                 return(reduction, pile_index)
 
-        # Logic for cases in which the only move with outcome NIM-sum = 0 leads to a blacklisted (immediate loss) state
-        # Ideally a move is picked so that the other player is forced into the same situation on their next turn
-        print("No move leading to a winning state found... Checking other possibilities.")
+        if flagged_state is not None:
+            # Logic for cases in which the only move with outcome NIM-sum = 0 leads to a blacklisted (immediate loss) state
+            # Ideally a move is picked so that the other player is forced into the same situation on their next turn
 
-        # The best move is that which best forces the other player into the same situation on their next turn
-        best_move = None
-        best_move_nim_sum = 0
+            print("No move leading to a winning state found... Checking other possibilities.")
 
-        for pile_index in range(pile_count):
-            if piles[pile_index] != problematic_state[pile_index]: # piles[pile_index] will ALWAYS be greater than problematic_state[pile_index] since the latter is a later game state
-                difference = piles[pile_index] - problematic_state[pile_index]
-                reduction = difference - 1
-                temp_piles = piles.copy()
-                temp_piles[pile_index] -= reduction
+            # The best move is that which best forces the other player into the same situation on their next turn
+            best_move = None
+            best_move_nim_sum = 0
 
-                if frozenset(temp_piles) not in blacklist:
-                    temp_nim_sum = 0
-                    for pile in temp_piles:
-                        temp_nim_sum ^= pile
+            future_sum = sum(flagged_state)
+            current_sum = sum(piles)
+            reduction = (current_sum - future_sum) - 1
+            for pile_index in non_empty_pile_indexes:
+                if piles[pile_index] > reduction:
+                    temp_piles = piles.copy()
+                    temp_piles[pile_index] -= reduction
 
-                    if best_move_nim_sum < temp_nim_sum:
-                        best_move = (pile_index, reduction)
-                        best_move_nim_sum = temp_nim_sum
-                    
-        if best_move is not None:
-            print(temp_piles)
-            return(best_move)
+                    if frozenset(temp_piles) not in blacklist:
+                        temp_nim_sum = 0
+                        for pile in temp_piles:
+                            temp_nim_sum ^= pile
+
+                        if best_move_nim_sum < temp_nim_sum:
+                            best_move = (reduction, pile_index)
+                            best_move_nim_sum = temp_nim_sum
+
+            if best_move is not None:
+                return(best_move)
+
+
+            # for pile_index in non_empty_pile_indexes:
+            #     if piles[pile_index] != flagged_state[pile_index]: # piles[pile_index] will ALWAYS be greater than flagged_state[pile_index] since the latter is a later game state
+            #         difference = piles[pile_index] - flagged_state[pile_index]
+            #         reduction = difference - 1
+            #         temp_piles = piles.copy()
+            #         temp_piles[pile_index] -= reduction
+
+            #         if frozenset(temp_piles) not in blacklist:
+            #             temp_nim_sum = 0
+            #             for pile in temp_piles:
+            #                 temp_nim_sum ^= pile
+
+            #             if best_move_nim_sum < temp_nim_sum:
+            #                 best_move = (pile_index, reduction)
+            #                 best_move_nim_sum = temp_nim_sum
+                        
+            # if best_move is not None:
+            #     print(temp_piles)
+            #     return(best_move)
 
         # Otherwise do some arbitrary move that doesn't lead to a blacklisted state
         for pile_index in non_empty_pile_indexes:
@@ -173,9 +190,8 @@ def main():
 
         # CPU's turn logic
         else:
-            reduction, pile_index = cpu_plays(pile_count, piles, non_empty_pile_indexes) # !!! If we don't have to pass any variables by adjusting scope, that would be ideal
-            if reduction < 1: # !!! We need real strategy here lol
-                reduction = 1
+            # Get reduction/pile index:
+            reduction, pile_index = cpu_plays(piles, non_empty_pile_indexes) # !!! If we don't have to pass any variables by adjusting scope, that would be ideal
             print_reduction("CPU", reduction, pile_index)
 
         # Reduction logic:
