@@ -70,7 +70,7 @@ def cpu_plays(pile_count, piles, non_empty_pile_indexes):
                     smallest_pile_size = min(pile_size for pile_size in piles if pile_size > 0)
                     for pile_index in non_empty_pile_indexes:
                         if piles[pile_index] != smallest_pile_size:
-                            reduction = piles[pile_index] - (piles[pile_index] - smallest_pile_size)
+                            reduction = piles[pile_index] - smallest_pile_size
                             return(reduction, pile_index)
 
 # Main function:
