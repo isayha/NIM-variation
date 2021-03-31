@@ -1,5 +1,4 @@
 import math
-import copy
 from collections import Counter
 
 def generate_children(parent):
@@ -24,7 +23,7 @@ def game_over(state, blacklist):
 
 cache = {}
 choices = []
-def minimax(state, iteration, cpus_turn, blacklist):
+def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.inf):
     if game_over(state, blacklist):
         if cpus_turn:
             return 1
@@ -42,6 +41,10 @@ def minimax(state, iteration, cpus_turn, blacklist):
                 eval = minimax(child.copy(), iteration + 1, False, blacklist)
                 cache.update({(frozenset(Counter(non_zero_copy).items()), cpus_turn) : eval})
             max_eval = max(max_eval, eval)
+            alpha = max(alpha, max_eval)
+            if alpha >= beta:
+                print("smileeeee")
+                break
             if iteration == 0 and eval == 1:
                 choices.append(child)
         return max_eval
@@ -57,6 +60,10 @@ def minimax(state, iteration, cpus_turn, blacklist):
                 eval = minimax(child.copy(), iteration + 1, True, blacklist)
                 cache.update({(frozenset(Counter(non_zero_copy).items()), cpus_turn) : eval})
             min_eval = min(min_eval, eval)
+            beta = min(beta, min_eval)
+            if beta <= alpha:
+                print("smile")
+                break
             if iteration == 0 and eval == 1:
                 choices.append(child)
         return min_eval
@@ -71,5 +78,5 @@ def better_cpu_plays(piles, blacklist):
                 return(reduction, pile_index)
     return(None, None)
 
-
-    
+minimax([3,4,5], 0, True, [])
+print(choices)
