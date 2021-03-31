@@ -24,6 +24,8 @@ def game_over(state, blacklist):
 cache = {}
 choices = []
 def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.inf):
+    blacklist.update({frozenset(Counter([1,2,3]).items()) : False}) # False is an arbitrary value
+    blacklist.update({frozenset(Counter([2,2,2]).items()) : False})
     if game_over(state, blacklist):
         if cpus_turn:
             return 1
@@ -43,7 +45,6 @@ def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.i
             max_eval = max(max_eval, eval)
             alpha = max(alpha, max_eval)
             if alpha >= beta:
-                print("smileeeee")
                 break
             if iteration == 0 and eval == 1:
                 choices.append(child)
@@ -62,7 +63,6 @@ def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.i
             min_eval = min(min_eval, eval)
             beta = min(beta, min_eval)
             if beta <= alpha:
-                print("smile")
                 break
             if iteration == 0 and eval == 1:
                 choices.append(child)
@@ -78,5 +78,5 @@ def better_cpu_plays(piles, blacklist):
                 return(reduction, pile_index)
     return(None, None)
 
-minimax([3,4,5], 0, True, [])
+minimax([3,4,5], 0, True, {frozenset(Counter([2,2,2]).items()) : False})
 print(choices)
