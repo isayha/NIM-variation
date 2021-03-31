@@ -22,8 +22,8 @@
 
 \section*{The Solution}
 \subsection*{Algorithm Overview}
-
-Algorithm:
+The CPU has two levels, basic and advanced. In the case the advanced CPU is unable to make a move the basic CPU will be used. If neither the basic or advanced CPU is able to make a move a random move will be made.
+Algorithm :
 \begin{verbatim}
   get num of piles, pile counts and turn
   
@@ -71,6 +71,7 @@ Minimax algorithm for better cpu:
 
 
 \subsection*{Algorithm Correctness}
+
 \subsection*{Data Structures Employed}
 \begin{enumerate}
   \item Tree (Game Tree): To choose optimal move a game tree is used, this tree searches for the best move using our \textit{minimax} algorithm. 
