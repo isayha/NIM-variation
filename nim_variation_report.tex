@@ -22,6 +22,33 @@
 
 \section*{The Solution}
 \subsection*{Algorithm Overview}
+\begin{verbatim}
+  get num of piles, pile counts and turn
+  
+  while game ! over:
+    if humans turn:
+      get human input
+      
+    if cpus turn: 
+      run minimax
+      
+      
+\end{verbatim}
+
+\begin{verbatim}
+    if cpus turn: 
+      generate children
+      for child in children:
+        if child, turn in cache:
+          get cache
+        else: 
+          run minimax next iteration
+          update cache
+      return max result
+     else:
+      return minimum result
+\end{verbatim}
+
 \subsection*{Algorithm Correctness}
 \subsection*{Data Structures Employed}
 \subsection*{Algorithm Complexity Analysis}
