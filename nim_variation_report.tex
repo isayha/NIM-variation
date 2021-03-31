@@ -23,7 +23,7 @@
 \section*{The Solution}
 \subsection*{Algorithm Overview}
 
-
+Algorithm:
 \begin{verbatim}
   get num of piles, pile counts and turn
   
@@ -35,9 +35,21 @@
       choice = minimax
       convert minimax result, choice, to move 
       
-    
+    check 3 conditions to end game:
+     if all piles empty:
+       game over = true
+     elif 3 piles each with 2 objects remaining & all other piles are empty:
+       game over = true
+     elif 1 pile with 1 object & 1 other pile with 2 objects &  a third pile with 3 objects & all other piles are empty
+       game over = true
+       
+    if game over & cpus turn:
+       Human wins
+    else:
+      CPU wins
 \end{verbatim}
 
+Minimax algorithm for better cpu:
 \begin{verbatim}
     choices = []
     if cpus turn: 
@@ -56,6 +68,7 @@
          add choice
       return minimum result
 \end{verbatim}
+
 
 \subsection*{Algorithm Correctness}
 \subsection*{Data Structures Employed}
