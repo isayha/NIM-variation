@@ -22,6 +22,8 @@
 
 \section*{The Solution}
 \subsection*{Algorithm Overview}
+
+
 \begin{verbatim}
   get num of piles, pile counts and turn
   
@@ -32,10 +34,11 @@
     if cpus turn: 
       run minimax
       
-      
+    
 \end{verbatim}
 
 \begin{verbatim}
+    choices = []
     if cpus turn: 
       generate children
       for child in children:
@@ -44,8 +47,12 @@
         else: 
           run minimax next iteration
           update cache
+         if new choice found:
+           add choice
       return max result
      else:
+       if new choice found:
+         add choice
       return minimum result
 \end{verbatim}
 
