@@ -94,6 +94,7 @@ def main():
                 reduction, pile_index = better_cpu_plays(piles, blacklist)
                 if reduction is None and pile_index is None:
                     print("ERROR: Advanced CPU player could not find a move. Switching to Basic CPU player...")
+                    reduction, pile_index = cpu_plays(piles, non_empty_pile_indexes, blacklist)
             
             if reduction is None or pile_index is None:
                 print("ERROR: CPU could not find move. Defaulting...")
