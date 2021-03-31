@@ -1,6 +1,9 @@
 import math
 from collections import Counter
 
+# Our best and brightest CPU player, based on the minimax algorithm (a search tree) with alpha-beta pruning and memoization (a hash table)
+
+# Generate (immediate) child nodes of parent node
 def generate_children(parent):
     children = []
     for pile_index in range(len(parent)):
@@ -10,19 +13,21 @@ def generate_children(parent):
             children.append(temp_parent)
     return children if len(children) > 0 else None
 
+# Check if state is a game over state
 def game_over(state, blacklist):
-    # Check blacklisted states
+    # Check if state is a blacklisted state
     non_zero_state = state.copy()
     non_zero_state = [pile_size for pile_size in state if pile_size > 0]
     if frozenset(Counter(non_zero_state).items()) in blacklist:
         return True
-    # Check if all piles are empty
+    # Check if all piles in state are empty
     if not any(pile_size != 0 for pile_size in state):
         return True
     return False
 
 cache = {}
 choices = []
+# Get moves for the computer player using the minimax algorithm with alpha-beta pruning and memoization
 def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.inf):
     if game_over(state, blacklist):
         if cpus_turn:
@@ -66,6 +71,7 @@ def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.i
                 choices.append(child)
         return min_eval
 
+# Handles interfacing between the main game logic and the minimax function
 def better_cpu_plays(piles, blacklist):
     minimax(piles, 0, True, blacklist)
     if len(choices) > 0:

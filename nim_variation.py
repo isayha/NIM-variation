@@ -39,7 +39,7 @@ blacklist.update({frozenset(Counter([2,2,2]).items()) : False}) # False is an ar
 def main():
     # Game setup:
     # Get CPU player choice:
-    print("Welcome to NIM-variation!")
+    print("Welcome to NIM Variation!")
     print("You can play against a simple (basic) CPU player, or a CPU player based on the minimax algorithm with memoization (advanced).")
     cpu_type = get_user_int("Please enter the desired CPU player type (0 for basic, 1 for advanced): ", 0, 1)
 
@@ -97,7 +97,7 @@ def main():
                     reduction, pile_index = cpu_plays(piles, non_empty_pile_indexes, blacklist)
             
             if reduction is None or pile_index is None:
-                print("ERROR: CPU could not find move. Defaulting...")
+                print("ERROR: CPU player could not a find move. Defaulting...")
                 reduction = 1
                 pile_index = non_empty_pile_indexes[0]
 

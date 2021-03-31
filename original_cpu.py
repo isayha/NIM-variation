@@ -1,6 +1,7 @@
 from collections import Counter
 
-# Our original CPU player, prior to creating a minimax-based CPU player (better_cpu.py)
+# Our original CPU player, prior to creating a better, minimax/memoization-based CPU player (better_cpu.py)
+
 def cpu_plays(piles, non_empty_pile_indexes, blacklist):
     # Used in cases where any and all moves that change the NIM-sum to 0 also put the CPU player into a constrained/immediate-loss game state
     flagged_state = None
@@ -142,5 +143,5 @@ def cpu_plays(piles, non_empty_pile_indexes, blacklist):
             if frozenset(Counter(temp_piles).items()) not in blacklist:
                 return(reduction, pile_index)
 
-    # Default return for safety (handled externally)
+    # Default return for safety (handled externally, if all else fails)
     return(None, None)
