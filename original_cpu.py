@@ -130,7 +130,7 @@ def cpu_plays(piles, non_empty_pile_indexes, blacklist):
                         best_move = (reduction, pile_index)
                         best_move_nim_sum = temp_nim_sum
                         best_move_non_empty_pile_count = temp_non_empty_pile_count
-        if best_move is not None:
+        if best_move is not None and reduction != 0:
             return(best_move)
 
     # If no strategy is found, perform some arbitrary move that doesn't lead to an immediate-loss game state
