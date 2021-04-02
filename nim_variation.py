@@ -1,4 +1,4 @@
-# Team Project (NIM Variation)
+# Team Project (Nim Variation)
 # Python Source Code
 # CPSC 482
 # Derik Dreher, Sofia Jones, Isayha Raposo
@@ -29,7 +29,7 @@ def human_plays(pile_count, piles, non_empty_pile_indexes):
 
     return(reduction, pile_index)
 
-# Blacklist (List of specified constrained/immediate-loss game states)
+# Blacklist (List of specified constraints/game-ending pile patterns)
 blacklist = {}
 # Chen's constraints (hard-coded)
 blacklist.update({frozenset(Counter([1,2,3]).items()) : False}) # False is an arbitrary value
@@ -39,8 +39,8 @@ blacklist.update({frozenset(Counter([2,2,2]).items()) : False}) # False is an ar
 def main():
     # Game setup:
     # Get CPU player choice:
-    print("Welcome to NIM Variation!")
-    print("You can play against a simple (basic) CPU player, or a CPU player based on the minimax algorithm with memoization (advanced).")
+    print("Welcome to a Variation of Nim!")
+    print("You can play against a basic CPU player, or an advanced CPU player (based on the minimax algorithm with memoization and alpha-beta pruning).")
     cpu_type = get_user_int("Please enter the desired CPU player type (0 for basic, 1 for advanced): ", 0, 1)
 
     # Get pile count:
@@ -55,10 +55,10 @@ def main():
         piles.append(pile_size)
 
     # Get custom constraint:
-    add_constraint = get_user_int("Would you like to add a custom constraint? (0 for N, 1 for Y): ", 0, 1)
+    add_constraint = get_user_int("Would you like to add a custom constraint (game-ending pile pattern)? (0 for N, 1 for Y): ", 0, 1)
     if add_constraint:
         # Get custom constraint pile count:
-        constraint_pile_count = get_user_int("How many piles should the custom constraint involve? (NOT INCLUDING: Piles containing 0 objects): ", 1, pile_count)
+        constraint_pile_count = get_user_int("How many piles should the custom constraint involve (not including piles containing 0 objects)?: ", 1, pile_count)
         constraint = []
         for pile_index in range(constraint_pile_count):
             constraint.append(get_user_int("Please enter a pile size to add to the custom constraint: ", 1, None))
@@ -66,7 +66,7 @@ def main():
     
     # Handle immediate loss:
     if frozenset(piles) in blacklist:
-        print("WARNING: Custom constraint is equivalent to initial pile state.")
+        print("WARNING: Custom constraint entered is equivalent to the initial pile state entered.")
         print("Game may not function as expected (was this an accident?)...")
 
     # Get turn order:
@@ -93,11 +93,11 @@ def main():
             if cpu_type == 1:
                 reduction, pile_index = better_cpu_plays(piles, blacklist)
                 if reduction is None and pile_index is None:
-                    print("ERROR: Advanced CPU player could not find a move. Switching to Basic CPU player...")
+                    print("The Advanced CPU player could not find an optimal move. Switching to the Basic CPU player for this move...")
                     reduction, pile_index = cpu_plays(piles, non_empty_pile_indexes, blacklist)
             
             if reduction is None or pile_index is None:
-                print("ERROR: CPU player could not a find move. Defaulting...")
+                print("CPU player could not a find move. Defaulting...")
                 reduction = 1
                 pile_index = non_empty_pile_indexes[0]
 
@@ -113,7 +113,7 @@ def main():
             print("All piles are empty.")
             game_over = True
         elif frozenset(Counter([pile_size for pile_size in piles if pile_size > 0]).items()) in blacklist:
-            print("A constrained/immediate-loss game state has been reached.")
+            print("A constraint/game-ending pile pattern has been reached.")
             game_over = True
         else:
             cpus_turn = not(cpus_turn) # Rotate turns

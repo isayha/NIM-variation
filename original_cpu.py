@@ -103,7 +103,6 @@ def cpu_plays(piles, non_empty_pile_indexes, blacklist):
         # Strategy for cases in which any and all moves that change the NIM-sum to 0 also put the CPU player into a constrained/immediate-loss game state
         # If possible, the move chosen should force the other player into the same situation on their next turn, if possible
 
-        print("CPU: No move leading to a winning state found... Checking other possibilities.")
         best_move = None
         # High NIM-sums are more likely to make it difficult to reduce the NIM-sum to 0 on the next turn
         # e.g.: A high NIM-sum is more likely to mean > 1 pile must be reduced to get the NIM-sum to 0

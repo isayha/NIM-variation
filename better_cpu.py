@@ -1,7 +1,7 @@
 import math
 from collections import Counter
 
-# Our best and brightest CPU player, based on the minimax algorithm (a search tree) with alpha-beta pruning and memoization (a hash table)
+# Our best and brightest CPU player, based on the minimax algorithm (a game/search tree) with alpha-beta pruning and memoization (a hash table/dictionary)
 
 # Generate (immediate) child nodes of parent node
 def generate_children(parent):
@@ -27,8 +27,8 @@ def game_over(state, blacklist):
 
 cache = {}
 choices = []
-# Get moves for the computer player using the minimax algorithm with alpha-beta pruning and memoization
-def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.inf):
+# Yields optimal moves (if they exist) for the computer player using the minimax algorithm with alpha-beta pruning and memoization
+def minimax(state, iteration, cpus_turn, blacklist, alpha, beta):
     if game_over(state, blacklist):
         if cpus_turn:
             return 1
@@ -43,7 +43,7 @@ def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.i
             if (frozenset(Counter(non_zero_copy).items()), cpus_turn) in cache:
                 eval = cache.get((frozenset(Counter(non_zero_copy).items()), cpus_turn))
             else:
-                eval = minimax(child.copy(), iteration + 1, False, blacklist)
+                eval = minimax(child.copy(), iteration + 1, False, blacklist, alpha, beta)
                 cache.update({(frozenset(Counter(non_zero_copy).items()), cpus_turn) : eval})
             max_eval = max(max_eval, eval)
             alpha = max(alpha, max_eval)
@@ -61,7 +61,7 @@ def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.i
             if (frozenset(Counter(non_zero_copy).items()), cpus_turn) in cache:
                 eval = cache.get((frozenset(Counter(non_zero_copy).items()), cpus_turn))
             else:
-                eval = minimax(child.copy(), iteration + 1, True, blacklist)
+                eval = minimax(child.copy(), iteration + 1, True, blacklist, alpha, beta)
                 cache.update({(frozenset(Counter(non_zero_copy).items()), cpus_turn) : eval})
             min_eval = min(min_eval, eval)
             beta = min(beta, min_eval)
@@ -71,9 +71,9 @@ def minimax(state, iteration, cpus_turn, blacklist, alpha=-math.inf, beta=math.i
                 choices.append(child)
         return min_eval
 
-# Handles interfacing between the main game logic and the minimax function
+# Handles interfacing between the driver logic and the minimax function above
 def better_cpu_plays(piles, blacklist):
-    minimax(piles, 0, True, blacklist)
+    minimax(piles, 0, True, blacklist, -math.inf, math.inf)
     if len(choices) > 0:
         choice = choices[0]
         for pile_index in range (0, len(choice)):
